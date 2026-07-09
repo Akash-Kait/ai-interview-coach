@@ -1,6 +1,6 @@
 # Runway — Interview Readiness Tracker · Design Spec
 
-**Status:** Draft · **Created:** 2026-07-09 · **Owner:** Akash
+**Status:** Draft · **Created:** 2026-07-09 · **Updated:** 2026-07-10 (added timeline + activity graph) · **Owner:** Akash
 **Stack (assumed):** React + Vite + TypeScript + Tailwind. LLM calls: bring-your-own-key (client-side).
 
 ---
@@ -13,7 +13,7 @@
 
 **Who it's for.** v1 is a single-user tool (me). It must be usable by anyone with a browser and an Anthropic API key, with zero server to run.
 
-**Success looks like.** A deployed static site where a user picks a target company, logs DSA problems, takes AI-graded skill quizzes, pastes a system-design transcript for evaluation, and watches a weighted readiness gauge move — with all progress persisted locally across sessions.
+**Success looks like.** A deployed static site where a user picks a target company and a readiness goal by a date, logs DSA problems, takes AI-graded skill quizzes, pastes a system-design transcript for evaluation, and watches a weighted readiness gauge move — while a streak heatmap and an encouraging pace status keep them showing up daily, with all progress persisted locally across sessions.
 
 ---
 
@@ -24,15 +24,17 @@
 2. DSA log (manual, no AI): points by difficulty toward a target.
 3. Skill quizzes (AI): fresh interview-level question per attempt → open written answer → 0–100 grade with feedback → best-of per topic feeds the score.
 4. Design coach (AI): paste a full system-design transcript → 0–100 evaluation with strengths/gaps/next steps.
-5. Settings: choose target company (re-weights scoring); enter/store the API key locally.
+5. Settings: choose target company (re-weights scoring); set a readiness goal + target date; enter/store the API key locally.
 6. Local persistence + import/export of progress as JSON.
+7. Timeline & pacing: a self-set readiness goal by a target date, with an adaptive "on track / behind / ahead" status and easy date rebasing (see the design rule in §7).
+8. Activity graph & streak: a GitHub-style contribution heatmap of daily activity, shaded by effort, with current + longest streak counters.
 
 ### Non-goals (explicitly out of v1 — do not build these)
 - **Books / reading + comprehension quizzes.** First thing after v1; reuses the assessment engine. Deferred to keep v1 tight.
 - Accounts, auth, cloud sync, multi-device.
 - A hosted LLM proxy or any backend. (v1 is static + BYO-key.)
 - MCP server or Claude Skill wrappers. (Enabled later by the core module; not built now.)
-- Spaced-repetition scheduling, reminders, notifications, streak mechanics.
+- Spaced-repetition scheduling, reminders, push notifications. (The activity heatmap and pacing status *are* in scope; reminders/notifications are not — the heatmap motivates without them and avoids OS-permission complexity.)
 - More than a small set of seeded companies.
 - Mobile-native app. (Responsive web only.)
 - Editing the seeded topic/company data through the UI.
@@ -52,13 +54,15 @@
 /
   CLAUDE.md
   SPEC.md
-  package.json  vite.config.ts  tsconfig.json  tailwind.config.js
+  package.json  vite.config.ts  tsconfig.json
   README.md
   src/
     core/                    # framework-agnostic, pure TS, no DOM/network/UI
       domain/
         types.ts             # all shared types
-        scoring.ts           # pure scoring functions (heavily tested)
+        scoring.ts           # pure competency + overall scoring (heavily tested)
+        pace.ts              # pure pacing math: required vs actual, status, projected date (tested)
+        activity.ts          # pure aggregation of dated events → per-day activity + streaks (tested)
         seed.ts              # default competencies, topics, company profiles
       assessment/
         provider.ts          # AssessmentProvider + LlmClient interfaces
@@ -73,7 +77,7 @@
       lib/
         browserLlmClient.ts  # LlmClient impl: fetch → Anthropic, using the user's key
         localStore.ts        # Store impl over localStorage
-      components/            # Dashboard, Gauge, Bars, Signals, DsaLog, SkillQuiz, DesignCoach, Settings
+      components/            # Dashboard, Gauge, Bars, Signals, Timeline, ActivityGraph, DsaLog, SkillQuiz, DesignCoach, Settings
       hooks/                 # useAppState
       App.tsx  main.tsx  index.css
 ```
@@ -81,7 +85,7 @@
 ### Tech decisions
 - **TypeScript everywhere.** The core's types are the contract.
 - **Vitest** for unit tests; scoring functions must be covered.
-- **Tailwind** for styling; keep the existing dark "instrument panel" look (deep slate base, indigo→cyan accent, emerald/amber/rose for strong/push/gap).
+- **Tailwind v4** for styling (via the `@tailwindcss/vite` plugin + CSS `@theme`; no `tailwind.config.js`); keep the existing dark "instrument panel" look (deep slate base, indigo→cyan accent, emerald/amber/rose for strong/push/gap).
 - **No state library** in v1; a single `useAppState` hook + reducer over the core state is enough.
 
 ---
@@ -123,11 +127,17 @@ export interface EvalRecord {
   at: number;
 }
 
+export interface Goal {
+  targetReadiness: number; // e.g. 80 — the overall % to reach
+  targetDate: number;      // epoch ms; self-set and freely rebaseable
+}
+
 export interface AppState {
   companyId: string;
   dsa: { targetPoints: number; entries: DsaEntry[] };
   topics: Topic[];
   evals: EvalRecord[];
+  goal?: Goal;             // undefined = timeline feature dormant
 }
 
 // Assessment engine I/O
@@ -144,6 +154,18 @@ export interface TranscriptResult {
   strengths: string[];
   gaps: string[];
   focus: string[];             // ≤2 next steps
+}
+
+// Derived, never stored — computed from dated events (+ goal)
+export interface ActivityDay { date: string; count: number; effort: number; } // effort: weighted tier value
+export interface StreakInfo { current: number; longest: number; days: ActivityDay[]; }
+export interface PaceInfo {
+  status: 'no-goal' | 'ahead' | 'on-track' | 'behind' | 'done';
+  daysLeft: number;
+  requiredPerWeek: number;      // readiness points/week needed from now
+  actualPerWeek: number;        // recent observed readiness points/week
+  projectedDate: number | null; // when current pace would reach the goal
+  neededDailyEffort: number;    // encouraging "about this much/day" figure
 }
 ```
 
@@ -164,6 +186,10 @@ Verdict bands (overall): `<30` Foundations · `30–55` Building · `55–75` In
 Signal buckets (per competency): strong `≥75` · push `45–74` · gap `<45`.
 
 > When books are added post-v1, blend a `bookComprehension` signal into the relevant competency at ~0.15 weight. Design the scoring functions so this is a one-line addition, not a refactor.
+
+**Pacing (`pace.ts`, pure).** From `goal` plus a short history of overall-readiness values: `daysLeft = targetDate − now`; `requiredPerWeek = (targetReadiness − currentReadiness) / weeksLeft`; `actualPerWeek` = readiness gained over the last ~2–3 weeks; `status` compares the two (with a tolerance band around "on-track"); `projectedDate` extrapolates current pace to the goal. Already at/above target → `done`; no goal set → `no-goal`. Every figure is advisory and must never render as a failure state.
+
+**Activity (`activity.ts`, pure).** Fold every dated event (DSA entries, quiz attempts, evals, later reading updates) into a day → `{count, effort}` map, with `effort` bucketed to the tier idea (floor 1 / normal 2 / strong 3+). Derive `current` and `longest` streaks (a day counts when effort ≥ 1). Stores nothing extra — computed from the timestamps already in `AppState`.
 
 ---
 
@@ -239,6 +265,18 @@ export interface AssessmentProvider {
 - [ ] Export progress to a JSON file and import it back (key excluded from both).
 - [ ] Corrupt/missing stored state falls back to seed defaults without crashing.
 
+**F7 — Timeline & pacing**
+- [ ] In Settings, set a target readiness % and a target date; both editable/rebaseable anytime; clearing them turns the feature off.
+- [ ] Dashboard shows days left, an "ahead / on-track / behind" status from `pace.ts`, and a projected finish date at the current pace.
+- [ ] When behind, the UI shows the adjusted daily effort needed to still hit the date **and** a one-tap "move date" option — never a red/failure state, always a path forward.
+- [ ] Copy is encouraging throughout; no shaming language anywhere in this feature.
+
+**F8 — Activity graph & streak**
+- [ ] GitHub-style heatmap of the last ~6–12 months, one cell per day, shaded in ~4 buckets by that day's effort.
+- [ ] Current-streak and longest-streak counters; a day counts when effort ≥ 1 (the "floor" rep).
+- [ ] Hovering/tapping a cell shows that day's activity count.
+- [ ] Derived live from logged events; no separate storage.
+
 **Quality floor (applies to all):** responsive to mobile, visible keyboard focus, `prefers-reduced-motion` respected, no unhandled promise rejections.
 
 ---
@@ -247,6 +285,7 @@ export interface AssessmentProvider {
 
 - **Browser → Anthropic call method (verify before building).** Cross-origin browser calls have CORS implications. Confirm the *current* supported approach for direct browser-side calls to the Anthropic API against docs.claude.com (a documented browser-access header vs. requiring a tiny local/serverless proxy). Isolate this entirely inside `browserLlmClient` so the decision never leaks into the core.
 - **Grading is non-deterministic.** The same answer can score slightly differently across runs. Acceptable for a study aid; the README must say scores are guidance, not a hiring prediction. Keep best-of semantics so variance can't erase progress.
+- **Pressure must help, not shame (F7).** The target user's failure mode is falling behind and then avoiding the tool. So pacing is always framed as a path forward from the current state, the target date is trivially rebaseable, and there is no "failing" / red state. This is a deliberate design constraint, not a style choice — an accusatory deadline would defeat the app's purpose.
 - **Cost.** Every quiz/eval spends the user's tokens. Keep `maxTokens` modest; don't auto-retry on success.
 - **Spec drift.** Prefer the smallest change that satisfies an acceptance criterion. If reality contradicts this spec during a build, stop and update the spec first, then implement — the spec stays the source of truth.
 
@@ -263,6 +302,8 @@ export interface AssessmentProvider {
 7. DSA log (F2).
 8. Skill quiz (F3), reusing the engine.
 9. Design coach (F4).
-10. Empty/error/loading states, responsive + a11y pass, README with setup + deploy (static host) + the "guidance, not prediction" note.
+10. Activity graph + streak (F8): `activity.ts` **with tests**, then the heatmap component. No AI, low risk — a good early motivating win.
+11. Timeline + pacing (F7): `pace.ts` **with tests**, the goal fields in Settings, and the status on the dashboard.
+12. Empty/error/loading states, responsive + a11y pass, README with setup + deploy (static host) + the "guidance, not prediction" note.
 
-Ship after step 10. Books and any other backlog item are a **separate** spec and a separate pass.
+Ship after step 12. Books and any other backlog item are a **separate** spec and a separate pass.
