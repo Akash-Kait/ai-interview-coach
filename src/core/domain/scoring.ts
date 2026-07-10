@@ -109,6 +109,33 @@ export interface CompetencyBreakdown {
   weight: number;
 }
 
+export interface DsaStats {
+  solved: number;
+  points: number;
+  cleanRate: number; // % of solves that were clean
+  weakestPattern: string | null; // pattern with the most non-clean results
+}
+
+export function dsaStats(entries: DsaEntry[]): DsaStats {
+  const solved = entries.length;
+  const points = dsaPoints(entries);
+  const clean = entries.filter((e) => e.result === 'clean').length;
+  const cleanRate = solved ? Math.round((clean / solved) * 100) : 0;
+  const counts = new Map<string, number>();
+  for (const e of entries) {
+    if (e.result !== 'clean') counts.set(e.pattern, (counts.get(e.pattern) ?? 0) + 1);
+  }
+  let weakestPattern: string | null = null;
+  let max = 0;
+  for (const [pattern, count] of counts) {
+    if (count > max) {
+      max = count;
+      weakestPattern = pattern;
+    }
+  }
+  return { solved, points, cleanRate, weakestPattern };
+}
+
 /** Per-competency score + bucket + company weight, sorted by weight (desc), stable by ALL_COMPETENCIES order. */
 export function competencyBreakdown(state: AppState, company: CompanyProfile): CompetencyBreakdown[] {
   const rows = ALL_COMPETENCIES.map((id) => {

@@ -12,6 +12,7 @@ import {
   PASS,
   ALL_COMPETENCIES,
   competencyBreakdown,
+  dsaStats,
   type Bucket,
   type VerdictBand,
 } from '../domain/scoring';
@@ -137,6 +138,22 @@ describe('signalBucket', () => {
   });
   it('PASS is the strong boundary', () => {
     expect(signalBucket(PASS)).toBe('strong');
+  });
+});
+
+describe('dsaStats', () => {
+  const e = (pattern: string, result: 'clean' | 'hint' | 'failed', difficulty: 'easy' | 'medium' | 'hard') => ({
+    id: Math.random().toString(), name: 'n', pattern, difficulty, result, at: 0,
+  });
+  it('is empty for no entries', () => {
+    expect(dsaStats([])).toEqual({ solved: 0, points: 0, cleanRate: 0, weakestPattern: null });
+  });
+  it('computes solved, points, clean-rate, and weakest pattern', () => {
+    const stats = dsaStats([e('DP', 'failed', 'hard'), e('DP', 'hint', 'medium'), e('Graph', 'clean', 'easy')]);
+    expect(stats.solved).toBe(3);
+    expect(stats.points).toBe(6);
+    expect(stats.cleanRate).toBe(33);
+    expect(stats.weakestPattern).toBe('DP');
   });
 });
 
