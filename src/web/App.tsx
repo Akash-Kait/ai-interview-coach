@@ -1,4 +1,7 @@
+import { useAppState } from './hooks/useAppState'
+
 export default function App() {
+  const { state } = useAppState()
   return (
     <main className="grid min-h-screen place-items-center bg-slate-950 text-slate-100">
       <div className="text-center">
@@ -7,6 +10,9 @@ export default function App() {
         </h1>
         <p className="mt-2 text-sm text-slate-400">
           Interview readiness tracker — scaffold online.
+        </p>
+        <p className="mt-1 text-xs text-slate-500">
+          {state.topics.length} topics · {state.dsa.entries.length} DSA solved · company: {state.companyId}
         </p>
       </div>
     </main>
