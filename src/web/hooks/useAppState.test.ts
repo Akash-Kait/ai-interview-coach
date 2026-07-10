@@ -31,4 +31,13 @@ describe('appReducer', () => {
     const seed = { ...createSeedState(), dsa: { targetPoints: 100, entries: [entry] } };
     expect(appReducer(seed, { type: 'deleteDsaEntry', id: 'x' }).dsa.entries).toEqual([]);
   });
+  it("'recordAsked' prepends the question and caps at 6", () => {
+    const seed = { ...createSeedState(), topics: [{ id: 't', label: 'L', competency: 'be' as const, best: 0, asked: ['a', 'b', 'c', 'd', 'e', 'f'] }] };
+    expect(appReducer(seed, { type: 'recordAsked', topicId: 't', question: 'new' }).topics[0].asked).toEqual(['new', 'a', 'b', 'c', 'd', 'e']);
+  });
+  it("'recordQuiz' raises best to the max", () => {
+    const seed = { ...createSeedState(), topics: [{ id: 't', label: 'L', competency: 'be' as const, best: 50, asked: [] }] };
+    expect(appReducer(seed, { type: 'recordQuiz', topicId: 't', score: 80 }).topics[0].best).toBe(80);
+    expect(appReducer(seed, { type: 'recordQuiz', topicId: 't', score: 30 }).topics[0].best).toBe(50);
+  });
 });

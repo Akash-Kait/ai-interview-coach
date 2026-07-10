@@ -8,7 +8,9 @@ export type AppAction =
   | { type: 'reset' }
   | { type: 'setCompany'; companyId: string }
   | { type: 'addDsaEntry'; entry: DsaEntry }
-  | { type: 'deleteDsaEntry'; id: string };
+  | { type: 'deleteDsaEntry'; id: string }
+  | { type: 'recordAsked'; topicId: string; question: string }
+  | { type: 'recordQuiz'; topicId: string; score: number };
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -22,6 +24,20 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, dsa: { ...state.dsa, entries: [action.entry, ...state.dsa.entries] } };
     case 'deleteDsaEntry':
       return { ...state, dsa: { ...state.dsa, entries: state.dsa.entries.filter((e) => e.id !== action.id) } };
+    case 'recordAsked':
+      return {
+        ...state,
+        topics: state.topics.map((t) =>
+          t.id === action.topicId ? { ...t, asked: [action.question, ...t.asked].slice(0, 6) } : t,
+        ),
+      };
+    case 'recordQuiz':
+      return {
+        ...state,
+        topics: state.topics.map((t) =>
+          t.id === action.topicId ? { ...t, best: Math.max(t.best, action.score) } : t,
+        ),
+      };
     default:
       return state;
   }
