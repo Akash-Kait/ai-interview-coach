@@ -42,7 +42,7 @@ export default function DesignCoach({ state, dispatch, provider, apiKeyStore }: 
   const score = Math.round(competencyScore(state, mode));
 
   function copyPrompt() {
-    void navigator.clipboard?.writeText(problem.prompt);
+    void navigator.clipboard?.writeText(problem.prompt).catch(() => {});
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
   }

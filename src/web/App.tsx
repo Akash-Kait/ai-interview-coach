@@ -31,11 +31,11 @@ export default function App() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="flex items-center gap-6 border-b border-slate-800 px-6 py-4">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-slate-800 px-6 py-4">
         <h1 className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-xl font-semibold text-transparent">
           Runway
         </h1>
-        <nav className="flex gap-1">
+        <nav className="flex flex-wrap gap-1">
           {NAV.map((n) => (
             <button
               key={n.id}
