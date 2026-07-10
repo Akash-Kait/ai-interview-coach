@@ -11,6 +11,7 @@ import {
   signalBucket,
   PASS,
   ALL_COMPETENCIES,
+  competencyBreakdown,
   type Bucket,
   type VerdictBand,
 } from '../domain/scoring';
@@ -136,5 +137,25 @@ describe('signalBucket', () => {
   });
   it('PASS is the strong boundary', () => {
     expect(signalBucket(PASS)).toBe('strong');
+  });
+});
+
+describe('competencyBreakdown', () => {
+  const company: CompanyProfile = {
+    id: 'c', name: 'C', weights: { dsa: 3, sd: 3, be: 2, beh: 2, mlf: 1, mlsd: 1, de: 1 },
+  };
+  it('returns all 7 competencies sorted by weight desc (stable by ALL order)', () => {
+    const rows = competencyBreakdown(state(), company);
+    expect(rows).toHaveLength(7);
+    // weight desc, ties broken by ALL_COMPETENCIES order (dsa,mlsd,mlf,beh,sd,be,de):
+    // w3: dsa,sd · w2: beh,be · w1: mlsd,mlf,de
+    expect(rows.map((r) => r.id)).toEqual(['dsa', 'sd', 'beh', 'be', 'mlsd', 'mlf', 'de']);
+  });
+  it('carries score, bucket, and weight per competency', () => {
+    const s = state({ topics: [{ id: 't', label: 'A', competency: 'be', best: 80, asked: [] }] });
+    const be = competencyBreakdown(s, company).find((r) => r.id === 'be')!;
+    expect(be.score).toBe(80);
+    expect(be.bucket).toBe('strong');
+    expect(be.weight).toBe(2);
   });
 });

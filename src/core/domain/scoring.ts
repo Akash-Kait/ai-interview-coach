@@ -101,3 +101,20 @@ export function signalBucket(score: number): Bucket {
   if (score >= 45) return 'push';
   return 'gap';
 }
+
+export interface CompetencyBreakdown {
+  id: CompetencyId;
+  score: number;
+  bucket: Bucket;
+  weight: number;
+}
+
+/** Per-competency score + bucket + company weight, sorted by weight (desc), stable by ALL_COMPETENCIES order. */
+export function competencyBreakdown(state: AppState, company: CompanyProfile): CompetencyBreakdown[] {
+  const rows = ALL_COMPETENCIES.map((id) => {
+    const score = competencyScore(state, id);
+    return { id, score, bucket: signalBucket(score), weight: company.weights[id] };
+  });
+  const order = (id: CompetencyId) => ALL_COMPETENCIES.indexOf(id);
+  return rows.sort((a, b) => b.weight - a.weight || order(a.id) - order(b.id));
+}
