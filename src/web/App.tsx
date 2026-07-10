@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard'
 import DsaLog from './components/DsaLog'
 import SkillQuiz from './components/SkillQuiz'
 import DesignCoach from './components/DesignCoach'
+import ActivityGraph from './components/ActivityGraph'
 import Settings from './components/Settings'
 
 const NAV = [
@@ -12,6 +13,7 @@ const NAV = [
   { id: 'dsa', label: 'DSA' },
   { id: 'quiz', label: 'Quiz' },
   { id: 'design', label: 'Design' },
+  { id: 'activity', label: 'Activity' },
   { id: 'settings', label: 'Settings' },
 ] as const
 type View = (typeof NAV)[number]['id']
@@ -48,6 +50,7 @@ export default function App() {
         {view === 'dsa' && <DsaLog state={state} dispatch={dispatch} />}
         {view === 'quiz' && <SkillQuiz state={state} dispatch={dispatch} />}
         {view === 'design' && <DesignCoach state={state} dispatch={dispatch} />}
+        {view === 'activity' && <ActivityGraph state={state} />}
         {view === 'settings' && <Settings state={state} dispatch={dispatch} />}
       </div>
     </main>

@@ -20,3 +20,4 @@ export { AnthropicAssessmentProvider } from './assessment/anthropic';
 
 export * from './domain/scoring';
 export * from './domain/seed';
+export * from './domain/activity';
