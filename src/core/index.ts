@@ -16,5 +16,7 @@ export type {
 export type { LlmClient, AssessmentProvider } from './assessment/provider';
 export type { Store } from './storage/store';
 
+export { AnthropicAssessmentProvider } from './assessment/anthropic';
+
 export * from './domain/scoring';
 export * from './domain/seed';
