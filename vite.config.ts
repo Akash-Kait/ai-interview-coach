@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   test: {
+    globals: true,
     environment: 'node',
+    setupFiles: ['./src/test/setup.ts'],
   },
 })

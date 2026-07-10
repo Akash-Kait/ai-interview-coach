@@ -5,7 +5,8 @@ import { createLocalStore } from '../lib/localStore';
 
 export type AppAction =
   | { type: 'replace'; state: AppState }
-  | { type: 'reset' };
+  | { type: 'reset' }
+  | { type: 'setCompany'; companyId: string };
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -13,6 +14,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return action.state;
     case 'reset':
       return createSeedState();
+    case 'setCompany':
+      return { ...state, companyId: action.companyId };
     default:
       return state;
   }

@@ -14,4 +14,10 @@ describe('appReducer', () => {
     expect(result).toEqual(createSeedState());
     expect(result).not.toBe(dirty);
   });
+  it("'setCompany' updates companyId only", () => {
+    const seed = createSeedState();
+    const result = appReducer(seed, { type: 'setCompany', companyId: 'backend-infra' });
+    expect(result.companyId).toBe('backend-infra');
+    expect(result.topics).toBe(seed.topics); // untouched
+  });
 });

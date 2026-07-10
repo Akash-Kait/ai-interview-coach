@@ -5,7 +5,7 @@ export const STORAGE_KEY = 'runway.state.v1';
 /** The subset of the Storage API this adapter needs (injectable for tests). */
 type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-function isAppState(v: unknown): v is AppState {
+export function isAppState(v: unknown): v is AppState {
   if (typeof v !== 'object' || v === null) return false;
   const s = v as Record<string, unknown>;
   return (

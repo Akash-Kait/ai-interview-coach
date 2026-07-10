@@ -1,19 +1,17 @@
 import { useAppState } from './hooks/useAppState'
+import Settings from './components/Settings'
 
 export default function App() {
-  const { state } = useAppState()
+  const { state, dispatch } = useAppState()
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-950 text-slate-100">
-      <div className="text-center">
-        <h1 className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-2xl font-semibold text-transparent">
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      <header className="border-b border-slate-800 px-6 py-4">
+        <h1 className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-xl font-semibold text-transparent">
           Runway
         </h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Interview readiness tracker — scaffold online.
-        </p>
-        <p className="mt-1 text-xs text-slate-500">
-          {state.topics.length} topics · {state.dsa.entries.length} DSA solved · company: {state.companyId}
-        </p>
+      </header>
+      <div className="mx-auto max-w-2xl px-6 py-8">
+        <Settings state={state} dispatch={dispatch} />
       </div>
     </main>
   )
