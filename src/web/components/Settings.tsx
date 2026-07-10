@@ -30,6 +30,22 @@ export default function Settings({ state, dispatch, apiKeyStore }: SettingsProps
   const [keyInput, setKeyInput] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [goalPct, setGoalPct] = useState(state.goal ? String(state.goal.targetReadiness) : '');
+  const [goalDate, setGoalDate] = useState(
+    state.goal ? new Date(state.goal.targetDate).toISOString().slice(0, 10) : '',
+  );
+
+  function saveGoal() {
+    const pct = Math.max(0, Math.min(100, Number(goalPct)));
+    const t = Date.parse(goalDate);
+    if (goalPct.trim() === '' || Number.isNaN(t)) return;
+    dispatch({ type: 'setGoal', goal: { targetReadiness: pct, targetDate: t } });
+  }
+  function clearGoal() {
+    dispatch({ type: 'setGoal', goal: undefined });
+    setGoalPct('');
+    setGoalDate('');
+  }
 
   function handleSaveKey() {
     const trimmed = keyInput.trim();
@@ -125,6 +141,25 @@ export default function Settings({ state, dispatch, apiKeyStore }: SettingsProps
           ))}
         </select>
         <p className="text-xs text-slate-500">Re-weights your readiness gauge for that company's priorities.</p>
+      </div>
+
+      <div className={panel}>
+        <h3 className="text-sm font-medium text-slate-200">Readiness goal</h3>
+        <div className="flex flex-wrap gap-3">
+          <label className="flex-1 text-sm text-slate-300">
+            Target readiness %
+            <input type="number" min={0} max={100} className={`mt-1 ${field}`} value={goalPct} onChange={(e) => setGoalPct(e.target.value)} placeholder="80" />
+          </label>
+          <label className="flex-1 text-sm text-slate-300">
+            Target date
+            <input type="date" className={`mt-1 ${field}`} value={goalDate} onChange={(e) => setGoalDate(e.target.value)} />
+          </label>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={saveGoal} className={btnPrimary}>Save goal</button>
+          {state.goal && <button type="button" onClick={clearGoal} className={btnGhost}>Clear goal</button>}
+        </div>
+        <p className="text-xs text-slate-500">No pressure — move the date anytime. It's a guide, not a deadline.</p>
       </div>
 
       <div className={panel}>

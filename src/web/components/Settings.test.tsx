@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Settings from './Settings';
 import { createSeedState } from '../../core';
@@ -52,6 +52,17 @@ describe('Settings', () => {
     await userEvent.upload(screen.getByLabelText(/import progress/i), file);
     await waitFor(() =>
       expect(dispatch).toHaveBeenCalledWith({ type: 'replace', state: imported }),
+    );
+  });
+
+  it('sets a readiness goal', async () => {
+    const dispatch = vi.fn();
+    render(<Settings state={createSeedState()} dispatch={dispatch} apiKeyStore={fakeApiKeyStore('k')} />);
+    fireEvent.change(screen.getByLabelText(/target readiness/i), { target: { value: '80' } });
+    fireEvent.change(screen.getByLabelText(/target date/i), { target: { value: '2026-12-31' } });
+    await userEvent.click(screen.getByRole('button', { name: /save goal/i }));
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'setGoal', goal: expect.objectContaining({ targetReadiness: 80 }) }),
     );
   });
 });

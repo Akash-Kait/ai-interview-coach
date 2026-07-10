@@ -132,12 +132,18 @@ export interface Goal {
   targetDate: number;      // epoch ms; self-set and freely rebaseable
 }
 
+export interface ReadinessPoint {
+  at: number;              // epoch ms
+  value: number;           // overall readiness 0–100 at that time
+}
+
 export interface AppState {
   companyId: string;
   dsa: { targetPoints: number; entries: DsaEntry[] };
   topics: Topic[];
   evals: EvalRecord[];
   goal?: Goal;             // undefined = timeline feature dormant
+  history?: ReadinessPoint[]; // daily overall-readiness snapshots; feeds pacing (§4)
 }
 
 // Assessment engine I/O

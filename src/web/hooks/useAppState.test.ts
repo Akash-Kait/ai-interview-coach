@@ -44,4 +44,19 @@ describe('appReducer', () => {
     const rec = { id: 'e', competency: 'sd' as const, prompt: 'P', score: 70, summary: 's', at: 0 };
     expect(appReducer(createSeedState(), { type: 'addEval', record: rec }).evals[0]).toBe(rec);
   });
+  it("'setGoal' sets and clears the goal", () => {
+    const g = { targetReadiness: 80, targetDate: 123 };
+    expect(appReducer(createSeedState(), { type: 'setGoal', goal: g }).goal).toEqual(g);
+    expect(appReducer({ ...createSeedState(), goal: g }, { type: 'setGoal', goal: undefined }).goal).toBeUndefined();
+  });
+  it("'recordReadiness' appends, replaces the same-day point, then appends the next day", () => {
+    const t = new Date(2026, 0, 1, 9).getTime();
+    const a = appReducer(createSeedState(), { type: 'recordReadiness', at: t, value: 10 });
+    expect(a.history).toEqual([{ at: t, value: 10 }]);
+    const b = appReducer(a, { type: 'recordReadiness', at: t + 3_600_000, value: 12 });
+    expect(b.history).toHaveLength(1);
+    expect(b.history?.[0].value).toBe(12);
+    const c = appReducer(b, { type: 'recordReadiness', at: t + 86_400_000, value: 15 });
+    expect(c.history).toHaveLength(2);
+  });
 });

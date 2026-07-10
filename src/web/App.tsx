@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { SEED_COMPANIES } from '../core'
+import { useEffect, useState } from 'react'
+import { SEED_COMPANIES, overallScore } from '../core'
 import { useAppState } from './hooks/useAppState'
 import Dashboard from './components/Dashboard'
 import DsaLog from './components/DsaLog'
@@ -22,6 +22,12 @@ export default function App() {
   const { state, dispatch } = useAppState()
   const [view, setView] = useState<View>('dashboard')
   const company = SEED_COMPANIES.find((c) => c.id === state.companyId) ?? SEED_COMPANIES[0]
+  const overall = Math.round(overallScore(state, company))
+
+  // Snapshot overall readiness (deduped per day) so pacing has a history to read.
+  useEffect(() => {
+    dispatch({ type: 'recordReadiness', at: Date.now(), value: overall })
+  }, [dispatch, overall])
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
@@ -46,7 +52,7 @@ export default function App() {
         </nav>
       </header>
       <div className="mx-auto max-w-2xl px-6 py-8">
-        {view === 'dashboard' && <Dashboard state={state} company={company} />}
+        {view === 'dashboard' && <Dashboard state={state} company={company} dispatch={dispatch} />}
         {view === 'dsa' && <DsaLog state={state} dispatch={dispatch} />}
         {view === 'quiz' && <SkillQuiz state={state} dispatch={dispatch} />}
         {view === 'design' && <DesignCoach state={state} dispatch={dispatch} />}

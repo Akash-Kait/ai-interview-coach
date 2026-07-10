@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer } from 'react';
-import type { AppState, DsaEntry, EvalRecord, Store } from '../../core';
+import type { AppState, DsaEntry, EvalRecord, Goal, Store } from '../../core';
 import { createSeedState } from '../../core';
 import { createLocalStore } from '../lib/localStore';
 
@@ -11,7 +11,9 @@ export type AppAction =
   | { type: 'deleteDsaEntry'; id: string }
   | { type: 'recordAsked'; topicId: string; question: string }
   | { type: 'recordQuiz'; topicId: string; score: number }
-  | { type: 'addEval'; record: EvalRecord };
+  | { type: 'addEval'; record: EvalRecord }
+  | { type: 'setGoal'; goal: Goal | undefined }
+  | { type: 'recordReadiness'; at: number; value: number };
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -41,6 +43,16 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
     case 'addEval':
       return { ...state, evals: [action.record, ...state.evals] };
+    case 'setGoal':
+      return { ...state, goal: action.goal };
+    case 'recordReadiness': {
+      const hist = state.history ?? [];
+      const sameDay =
+        hist.length > 0 && new Date(hist[hist.length - 1].at).toDateString() === new Date(action.at).toDateString();
+      const point = { at: action.at, value: action.value };
+      const next = sameDay ? [...hist.slice(0, -1), point] : [...hist, point];
+      return { ...state, history: next.slice(-400) };
+    }
     default:
       return state;
   }

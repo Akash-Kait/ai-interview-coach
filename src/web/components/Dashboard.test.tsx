@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Dashboard from './Dashboard';
 import { createSeedState, SEED_COMPANIES } from '../../core';
 import type { AppState } from '../../core';
@@ -34,5 +35,20 @@ describe('Dashboard', () => {
     render(<Dashboard state={s} company={company('backend-infra')} />);
     const strong = within(screen.getByRole('region', { name: /signals/i })).getByText('Strong').closest('div')!;
     expect(within(strong).getByText('Backend Engineering')).toBeInTheDocument();
+  });
+
+  it('shows a pace panel and can move the date when behind', async () => {
+    const now = Date.now();
+    const s: AppState = {
+      ...createSeedState(),
+      goal: { targetReadiness: 80, targetDate: now + 7 * 86_400_000 },
+      history: [{ at: now - 21 * 86_400_000, value: 10 }, { at: now, value: 15 }],
+    };
+    const dispatch = vi.fn();
+    render(<Dashboard state={s} company={company('generalist')} dispatch={dispatch} now={now} />);
+    const region = screen.getByRole('region', { name: 'Pace' });
+    expect(within(region).getByText(/behind/i)).toBeInTheDocument();
+    await userEvent.click(within(region).getByRole('button', { name: /move date/i }));
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'setGoal' }));
   });
 });
