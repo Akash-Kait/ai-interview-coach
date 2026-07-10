@@ -4,6 +4,7 @@ import {
   COMPETENCY_LABELS,
   SEED_TOPICS,
   SEED_COMPANIES,
+  SEED_DESIGN_PROBLEMS,
   DEFAULT_COMPANY_ID,
   DEFAULT_DSA_TARGET,
   createSeedState,
@@ -40,6 +41,18 @@ describe('seed companies', () => {
   });
   it('default company id exists', () => {
     expect(SEED_COMPANIES.map((c) => c.id)).toContain(DEFAULT_COMPANY_ID);
+  });
+});
+
+describe('seed design problems', () => {
+  it('covers both modes with non-empty interviewer prompts', () => {
+    expect(SEED_DESIGN_PROBLEMS.some((p) => p.kind === 'sd')).toBe(true);
+    expect(SEED_DESIGN_PROBLEMS.some((p) => p.kind === 'mlsd')).toBe(true);
+    for (const p of SEED_DESIGN_PROBLEMS) {
+      expect(['sd', 'mlsd']).toContain(p.kind);
+      expect(p.prompt.length).toBeGreaterThan(20);
+      expect(p.title.length).toBeGreaterThan(0);
+    }
   });
 });
 

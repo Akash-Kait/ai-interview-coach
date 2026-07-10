@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer } from 'react';
-import type { AppState, DsaEntry, Store } from '../../core';
+import type { AppState, DsaEntry, EvalRecord, Store } from '../../core';
 import { createSeedState } from '../../core';
 import { createLocalStore } from '../lib/localStore';
 
@@ -10,7 +10,8 @@ export type AppAction =
   | { type: 'addDsaEntry'; entry: DsaEntry }
   | { type: 'deleteDsaEntry'; id: string }
   | { type: 'recordAsked'; topicId: string; question: string }
-  | { type: 'recordQuiz'; topicId: string; score: number };
+  | { type: 'recordQuiz'; topicId: string; score: number }
+  | { type: 'addEval'; record: EvalRecord };
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -38,6 +39,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           t.id === action.topicId ? { ...t, best: Math.max(t.best, action.score) } : t,
         ),
       };
+    case 'addEval':
+      return { ...state, evals: [action.record, ...state.evals] };
     default:
       return state;
   }

@@ -65,6 +65,58 @@ export const SEED_COMPANIES: CompanyProfile[] = [
   },
 ];
 
+export interface DesignProblem {
+  id: string;
+  kind: 'mlsd' | 'sd';
+  title: string;
+  prompt: string; // interviewer prompt to run in another chat
+}
+
+export const SEED_DESIGN_PROBLEMS: DesignProblem[] = [
+  {
+    id: 'sd-url',
+    kind: 'sd',
+    title: 'Design a URL shortener',
+    prompt:
+      'You are a senior system-design interviewer. Run a 45-minute interview on: "Design a URL shortener (like bit.ly)". Ask clarifying questions first, then push on requirements, API, data model, storage and scaling, and key tradeoffs. Keep me talking — do not hand me the answer.',
+  },
+  {
+    id: 'sd-ratelimiter',
+    kind: 'sd',
+    title: 'Design a distributed rate limiter',
+    prompt:
+      'You are a senior system-design interviewer. Run a 45-minute interview on: "Design a distributed rate limiter". Ask clarifying questions, then probe algorithms (token bucket, sliding window), where it lives, consistency across nodes, and failure modes.',
+  },
+  {
+    id: 'sd-chat',
+    kind: 'sd',
+    title: 'Design a real-time chat system',
+    prompt:
+      'You are a senior system-design interviewer. Run a 45-minute interview on: "Design a real-time chat/messaging system". Ask clarifying questions, then probe delivery guarantees, fan-out, presence, storage, and scaling.',
+  },
+  {
+    id: 'mlsd-feed',
+    kind: 'mlsd',
+    title: 'Design a news-feed ranking system',
+    prompt:
+      'You are a senior ML-system-design interviewer. Run a 45-minute interview on: "Design the ranking system for a social news feed". Ask clarifying questions, then probe problem framing, features, candidate generation vs ranking, training data, metrics, serving, and monitoring.',
+  },
+  {
+    id: 'mlsd-recsys',
+    kind: 'mlsd',
+    title: 'Design a video recommendation system',
+    prompt:
+      'You are a senior ML-system-design interviewer. Run a 45-minute interview on: "Design video recommendations for a streaming platform". Ask clarifying questions, then probe objectives, candidate generation, ranking models, cold start, evaluation, and online serving.',
+  },
+  {
+    id: 'mlsd-fraud',
+    kind: 'mlsd',
+    title: 'Design a fraud-detection system',
+    prompt:
+      'You are a senior ML-system-design interviewer. Run a 45-minute interview on: "Design a real-time payment fraud-detection system". Ask clarifying questions, then probe labels, features, class imbalance, latency, thresholds, and feedback loops.',
+  },
+];
+
 export const DEFAULT_COMPANY_ID = 'generalist';
 export const DEFAULT_DSA_TARGET = 100;
 

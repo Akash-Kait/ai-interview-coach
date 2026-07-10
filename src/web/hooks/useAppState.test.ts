@@ -40,4 +40,8 @@ describe('appReducer', () => {
     expect(appReducer(seed, { type: 'recordQuiz', topicId: 't', score: 80 }).topics[0].best).toBe(80);
     expect(appReducer(seed, { type: 'recordQuiz', topicId: 't', score: 30 }).topics[0].best).toBe(50);
   });
+  it("'addEval' prepends the record", () => {
+    const rec = { id: 'e', competency: 'sd' as const, prompt: 'P', score: 70, summary: 's', at: 0 };
+    expect(appReducer(createSeedState(), { type: 'addEval', record: rec }).evals[0]).toBe(rec);
+  });
 });

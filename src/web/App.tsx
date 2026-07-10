@@ -4,12 +4,14 @@ import { useAppState } from './hooks/useAppState'
 import Dashboard from './components/Dashboard'
 import DsaLog from './components/DsaLog'
 import SkillQuiz from './components/SkillQuiz'
+import DesignCoach from './components/DesignCoach'
 import Settings from './components/Settings'
 
 const NAV = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'dsa', label: 'DSA' },
   { id: 'quiz', label: 'Quiz' },
+  { id: 'design', label: 'Design' },
   { id: 'settings', label: 'Settings' },
 ] as const
 type View = (typeof NAV)[number]['id']
@@ -45,6 +47,7 @@ export default function App() {
         {view === 'dashboard' && <Dashboard state={state} company={company} />}
         {view === 'dsa' && <DsaLog state={state} dispatch={dispatch} />}
         {view === 'quiz' && <SkillQuiz state={state} dispatch={dispatch} />}
+        {view === 'design' && <DesignCoach state={state} dispatch={dispatch} />}
         {view === 'settings' && <Settings state={state} dispatch={dispatch} />}
       </div>
     </main>
