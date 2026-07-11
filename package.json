@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
     "lint": "oxlint",
+    "prescreenshots": "playwright install chromium",
     "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {

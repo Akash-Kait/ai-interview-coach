@@ -1,7 +1,10 @@
 // Playwright screenshot harness for the UI polish pass (styling verification only).
 // Loads the running dev server, seeds a realistic populated state, and captures
 // Dashboard + DSA at desktop (1440) and mobile (390) widths.
-// Usage: `npm run dev` in one shell, then `npm run screenshots`.
+//
+// Usage: `npm run dev` in one shell, then `npm run screenshots` in another.
+// The `prescreenshots` npm hook runs `playwright install chromium` first, so the
+// browser binary is fetched on first use (it is machine-local, not committed).
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
