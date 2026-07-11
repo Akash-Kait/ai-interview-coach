@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { SEED_COMPANIES, overallScore } from '../core'
 import { useAppState } from './hooks/useAppState'
+import Layout from './components/Layout'
 import Dashboard from './components/Dashboard'
 import DsaLog from './components/DsaLog'
 import SkillQuiz from './components/SkillQuiz'
@@ -31,34 +32,36 @@ export default function App() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-slate-800 px-6 py-4">
-        <h1 className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-xl font-semibold text-transparent">
-          Runway
-        </h1>
-        <nav className="flex flex-wrap gap-1">
-          {NAV.map((n) => (
-            <button
-              key={n.id}
-              type="button"
-              onClick={() => setView(n.id)}
-              aria-current={view === n.id ? 'page' : undefined}
-              className={`rounded-md px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 ${
-                view === n.id ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {n.label}
-            </button>
-          ))}
-        </nav>
+      <header className="border-b border-slate-800">
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4">
+          <h1 className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-xl font-semibold text-transparent">
+            Runway
+          </h1>
+          <nav className="flex flex-wrap gap-1">
+            {NAV.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => setView(n.id)}
+                aria-current={view === n.id ? 'page' : undefined}
+                className={`rounded-md px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 ${
+                  view === n.id ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {n.label}
+              </button>
+            ))}
+          </nav>
+        </div>
       </header>
-      <div className="mx-auto max-w-2xl px-6 py-8">
+      <Layout>
         {view === 'dashboard' && <Dashboard state={state} company={company} dispatch={dispatch} />}
         {view === 'dsa' && <DsaLog state={state} dispatch={dispatch} />}
         {view === 'quiz' && <SkillQuiz state={state} dispatch={dispatch} />}
         {view === 'design' && <DesignCoach state={state} dispatch={dispatch} />}
         {view === 'activity' && <ActivityGraph state={state} />}
         {view === 'settings' && <Settings state={state} dispatch={dispatch} />}
-      </div>
+      </Layout>
     </main>
   )
 }

@@ -22,7 +22,7 @@ export default function Bars({ items }: { items: Row[] }) {
             <span className="w-40 shrink-0 truncate text-sm text-slate-300" title={it.label}>
               {it.label}
             </span>
-            <span className="h-2 flex-1 overflow-hidden rounded-full bg-slate-800">
+            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700/40">
               <span
                 className={`block h-full rounded-full ${FILL[it.bucket]}`}
                 style={{ width: `${Math.max(0, Math.min(100, it.score))}%` }}
