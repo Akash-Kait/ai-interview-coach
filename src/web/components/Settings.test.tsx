@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import Settings from './Settings';
 import { createSeedState } from '../../core';
 import type { ApiKeyStore } from '../lib/apiKey';
+import type { LlmConfig, LlmConfigStore } from '../lib/llmConfig';
 
 vi.mock('../lib/download', () => ({ downloadTextFile: vi.fn() }));
 import { downloadTextFile } from '../lib/download';
@@ -53,6 +54,18 @@ describe('Settings', () => {
     await waitFor(() =>
       expect(dispatch).toHaveBeenCalledWith({ type: 'replace', state: imported }),
     );
+  });
+
+  it('switching provider prefills base URL + model and relabels the key field', async () => {
+    const cfg: LlmConfig = { provider: 'anthropic', baseUrl: '', model: 'claude-sonnet-5' };
+    const configStore: LlmConfigStore = { get: () => cfg, set: (c) => void Object.assign(cfg, c) };
+    render(
+      <Settings state={createSeedState()} dispatch={vi.fn()} apiKeyStore={fakeApiKeyStore('k')} llmConfigStore={configStore} />,
+    );
+    await userEvent.selectOptions(screen.getByLabelText(/provider/i), 'groq');
+    expect(screen.getByLabelText(/base url/i)).toHaveValue('https://api.groq.com/openai/v1');
+    expect(screen.getByLabelText(/^model$/i)).toHaveValue('llama-3.3-70b-versatile');
+    expect(screen.getByLabelText(/groq api key/i)).toBeInTheDocument();
   });
 
   it('sets a readiness goal', async () => {

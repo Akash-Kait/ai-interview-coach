@@ -3,13 +3,15 @@ import type { AppState, AssessmentProvider, EvalRecord, TranscriptResult } from 
 import { AnthropicAssessmentProvider, SEED_DESIGN_PROBLEMS, competencyScore } from '../../core';
 import type { AppAction } from '../hooks/useAppState';
 import { createApiKeyStore, type ApiKeyStore } from '../lib/apiKey';
-import { createBrowserLlmClient } from '../lib/browserLlmClient';
+import { createLlmConfigStore, providerModelLabel, type LlmConfigStore } from '../lib/llmConfig';
+import { createLlmClient } from '../lib/llm';
 
 interface Props {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
   provider?: AssessmentProvider;
   apiKeyStore?: ApiKeyStore;
+  llmConfigStore?: LlmConfigStore;
 }
 
 type Mode = 'mlsd' | 'sd';
@@ -19,11 +21,13 @@ const MIN_TRANSCRIPT = 200;
 const field =
   'w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus-visible:border-cyan-400 focus-visible:ring-1 focus-visible:ring-cyan-400/50';
 
-export default function DesignCoach({ state, dispatch, provider, apiKeyStore }: Props) {
+export default function DesignCoach({ state, dispatch, provider, apiKeyStore, llmConfigStore }: Props) {
   const keyStore = useMemo(() => apiKeyStore ?? createApiKeyStore(), [apiKeyStore]);
+  const configStore = useMemo(() => llmConfigStore ?? createLlmConfigStore(), [llmConfigStore]);
+  const [llmConfig] = useState(() => configStore.get());
   const engine = useMemo(
-    () => provider ?? new AnthropicAssessmentProvider(createBrowserLlmClient(() => keyStore.get())),
-    [provider, keyStore],
+    () => provider ?? new AnthropicAssessmentProvider(createLlmClient(llmConfig, () => keyStore.get())),
+    [provider, llmConfig, keyStore],
   );
   const [hasKey] = useState(() => keyStore.get() !== null);
 
@@ -78,6 +82,7 @@ export default function DesignCoach({ state, dispatch, provider, apiKeyStore }: 
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-slate-100">Design coach</h2>
+      <p className="text-xs text-slate-500">Grading with {providerModelLabel(llmConfig)}</p>
       {!hasKey && (
         <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
           Add your Anthropic API key in Settings to evaluate transcripts.

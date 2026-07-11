@@ -3,13 +3,15 @@ import type { AppState, AssessmentProvider, QuizResult, Topic } from '../../core
 import { AnthropicAssessmentProvider, COMPETENCIES, COMPETENCY_LABELS, PASS } from '../../core';
 import type { AppAction } from '../hooks/useAppState';
 import { createApiKeyStore, type ApiKeyStore } from '../lib/apiKey';
-import { createBrowserLlmClient } from '../lib/browserLlmClient';
+import { createLlmConfigStore, providerModelLabel, type LlmConfigStore } from '../lib/llmConfig';
+import { createLlmClient } from '../lib/llm';
 
 interface Props {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
   provider?: AssessmentProvider;
   apiKeyStore?: ApiKeyStore;
+  llmConfigStore?: LlmConfigStore;
 }
 
 type Phase = 'idle' | 'loading' | 'answering' | 'grading' | 'graded' | 'error';
@@ -21,11 +23,13 @@ function styleFor(t: Topic): 'technical' | 'behavioral' {
 const btn =
   'rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60';
 
-export default function SkillQuiz({ state, dispatch, provider, apiKeyStore }: Props) {
+export default function SkillQuiz({ state, dispatch, provider, apiKeyStore, llmConfigStore }: Props) {
   const keyStore = useMemo(() => apiKeyStore ?? createApiKeyStore(), [apiKeyStore]);
+  const configStore = useMemo(() => llmConfigStore ?? createLlmConfigStore(), [llmConfigStore]);
+  const [llmConfig] = useState(() => configStore.get());
   const engine = useMemo(
-    () => provider ?? new AnthropicAssessmentProvider(createBrowserLlmClient(() => keyStore.get())),
-    [provider, keyStore],
+    () => provider ?? new AnthropicAssessmentProvider(createLlmClient(llmConfig, () => keyStore.get())),
+    [provider, llmConfig, keyStore],
   );
   const [hasKey] = useState(() => keyStore.get() !== null);
 
@@ -90,6 +94,7 @@ export default function SkillQuiz({ state, dispatch, provider, apiKeyStore }: Pr
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-slate-100">Skill quizzes</h2>
+      <p className="text-xs text-slate-500">Grading with {providerModelLabel(llmConfig)}</p>
       {!hasKey && (
         <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
           Add your Anthropic API key in Settings to take quizzes.

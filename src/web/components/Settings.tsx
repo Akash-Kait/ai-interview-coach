@@ -3,6 +3,14 @@ import type { AppState } from '../../core';
 import { SEED_COMPANIES } from '../../core';
 import type { AppAction } from '../hooks/useAppState';
 import { createApiKeyStore, type ApiKeyStore } from '../lib/apiKey';
+import {
+  createLlmConfigStore,
+  presetFor,
+  PROVIDER_PRESETS,
+  type LlmConfig,
+  type LlmConfigStore,
+  type LlmProvider,
+} from '../lib/llmConfig';
 import { exportStateToJson, parseImportedState } from '../lib/exportImport';
 import { downloadTextFile } from '../lib/download';
 
@@ -10,6 +18,7 @@ interface SettingsProps {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
   apiKeyStore?: ApiKeyStore;
+  llmConfigStore?: LlmConfigStore;
 }
 
 function maskKey(key: string): string {
@@ -24,7 +33,7 @@ const btnGhost =
 const btnPrimary =
   'rounded-md bg-indigo-500 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60';
 
-export default function Settings({ state, dispatch, apiKeyStore }: SettingsProps) {
+export default function Settings({ state, dispatch, apiKeyStore, llmConfigStore }: SettingsProps) {
   const store = useMemo(() => apiKeyStore ?? createApiKeyStore(), [apiKeyStore]);
   const [savedKey, setSavedKey] = useState<string | null>(() => store.get());
   const [keyInput, setKeyInput] = useState('');
@@ -34,6 +43,19 @@ export default function Settings({ state, dispatch, apiKeyStore }: SettingsProps
   const [goalDate, setGoalDate] = useState(
     state.goal ? new Date(state.goal.targetDate).toISOString().slice(0, 10) : '',
   );
+
+  const configStore = useMemo(() => llmConfigStore ?? createLlmConfigStore(), [llmConfigStore]);
+  const [config, setConfig] = useState<LlmConfig>(() => configStore.get());
+  const preset = presetFor(config.provider);
+
+  function updateConfig(next: LlmConfig) {
+    setConfig(next);
+    configStore.set(next);
+  }
+  function selectProvider(id: LlmProvider) {
+    const p = presetFor(id);
+    updateConfig({ provider: id, baseUrl: p.baseUrl, model: p.model });
+  }
 
   function saveGoal() {
     const pct = Math.max(0, Math.min(100, Number(goalPct)));
@@ -85,8 +107,55 @@ export default function Settings({ state, dispatch, apiKeyStore }: SettingsProps
       <h2 className="text-lg font-semibold text-slate-100">Settings</h2>
 
       <div className={panel}>
+        <h3 className="text-sm font-medium text-slate-200">AI provider</h3>
+
+        <label htmlFor="provider" className="block text-sm text-slate-300">
+          Provider
+          <select
+            id="provider"
+            className={`mt-1 ${field}`}
+            value={config.provider}
+            onChange={(e) => selectProvider(e.target.value as LlmProvider)}
+          >
+            {PROVIDER_PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {config.provider !== 'anthropic' && (
+          <>
+            <label htmlFor="base-url" className="block text-sm text-slate-300">
+              Base URL
+              <input
+                id="base-url"
+                className={`mt-1 ${field}`}
+                value={config.baseUrl}
+                onChange={(e) => updateConfig({ ...config, baseUrl: e.target.value })}
+                readOnly={!preset.editableBaseUrl}
+                placeholder="https://api.example.com/v1"
+                autoComplete="off"
+              />
+            </label>
+            <label htmlFor="model" className="block text-sm text-slate-300">
+              Model
+              <input
+                id="model"
+                className={`mt-1 ${field}`}
+                value={config.model}
+                onChange={(e) => updateConfig({ ...config, model: e.target.value })}
+                readOnly={!preset.editableModel}
+                placeholder="model-name"
+                autoComplete="off"
+              />
+            </label>
+          </>
+        )}
+
         <label htmlFor="api-key" className="block text-sm font-medium text-slate-200">
-          Anthropic API key
+          {preset.label} API key
         </label>
         <div className="flex gap-2">
           <input
@@ -94,7 +163,7 @@ export default function Settings({ state, dispatch, apiKeyStore }: SettingsProps
             type={showKey ? 'text' : 'password'}
             value={keyInput}
             onChange={(e) => setKeyInput(e.target.value)}
-            placeholder={savedKey ? maskKey(savedKey) : 'sk-ant-...'}
+            placeholder={savedKey ? maskKey(savedKey) : 'Paste your key'}
             autoComplete="off"
             className={field}
           />
@@ -120,7 +189,8 @@ export default function Settings({ state, dispatch, apiKeyStore }: SettingsProps
           <p className="text-xs text-amber-400">AI features are disabled until you add a key.</p>
         )}
         <p className="text-xs text-slate-500">
-          Your key is stored only in this browser (localStorage) and is sent only to Anthropic — never to us.
+          Your key is stored only in this browser (localStorage) and is sent only to your chosen provider — never to us.
+          It is excluded from export/import.
         </p>
       </div>
 
