@@ -1,18 +1,16 @@
 import { useState } from 'react';
 import type { AppState, DsaEntry } from '../../core';
-import { dsaScore, dsaStats } from '../../core';
+import { DSA_PATTERNS, dsaScore, dsaStats } from '../../core';
 import type { AppAction } from '../hooks/useAppState';
 
-const PATTERNS = [
-  'Two Pointers', 'Sliding Window', 'Binary Search', 'BFS', 'DFS', 'Dynamic Programming',
-  'Backtracking', 'Greedy', 'Heap', 'Union-Find', 'Graph', 'Hashing', 'Stack', 'Intervals', 'Bit Manipulation',
-];
 const DIFFICULTIES: DsaEntry['difficulty'][] = ['easy', 'medium', 'hard'];
 const RESULTS: DsaEntry['result'][] = ['clean', 'hint', 'failed'];
 
 const panel = 'space-y-3 rounded-lg border border-slate-800 bg-slate-900/50 p-4';
 const field =
   'w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus-visible:border-cyan-400 focus-visible:ring-1 focus-visible:ring-cyan-400/50';
+const selectField =
+  'w-full appearance-none rounded-md border border-slate-700 bg-slate-950 py-2 pl-3 pr-9 text-sm text-slate-100 outline-none rw-chevron focus-visible:border-cyan-400 focus-visible:ring-1 focus-visible:ring-cyan-400/50';
 const RESULT_COLOR: Record<DsaEntry['result'], string> = {
   clean: 'text-emerald-400',
   hint: 'text-amber-400',
@@ -21,7 +19,7 @@ const RESULT_COLOR: Record<DsaEntry['result'], string> = {
 
 export default function DsaLog({ state, dispatch }: { state: AppState; dispatch: React.Dispatch<AppAction> }) {
   const [name, setName] = useState('');
-  const [pattern, setPattern] = useState('');
+  const [pattern, setPattern] = useState(DSA_PATTERNS[0]);
   const [difficulty, setDifficulty] = useState<DsaEntry['difficulty']>('medium');
   const [result, setResult] = useState<DsaEntry['result']>('clean');
 
@@ -41,7 +39,7 @@ export default function DsaLog({ state, dispatch }: { state: AppState; dispatch:
     };
     dispatch({ type: 'addDsaEntry', entry });
     setName('');
-    setPattern('');
+    setPattern(DSA_PATTERNS[0]);
   }
 
   return (
@@ -56,18 +54,19 @@ export default function DsaLog({ state, dispatch }: { state: AppState; dispatch:
           </label>
           <label className="block text-sm text-slate-300">
             Pattern
-            <input className={`mt-1 ${field}`} value={pattern} onChange={(e) => setPattern(e.target.value)} list="dsa-patterns" placeholder="Sliding Window" />
-            <datalist id="dsa-patterns">{PATTERNS.map((p) => <option key={p} value={p} />)}</datalist>
+            <select className={`mt-1 ${selectField}`} value={pattern} onChange={(e) => setPattern(e.target.value)}>
+              {DSA_PATTERNS.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
           </label>
           <label className="block text-sm text-slate-300">
             Difficulty
-            <select className={`mt-1 ${field}`} value={difficulty} onChange={(e) => setDifficulty(e.target.value as DsaEntry['difficulty'])}>
+            <select className={`mt-1 ${selectField}`} value={difficulty} onChange={(e) => setDifficulty(e.target.value as DsaEntry['difficulty'])}>
               {DIFFICULTIES.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
           <label className="block text-sm text-slate-300">
             Result
-            <select className={`mt-1 ${field}`} value={result} onChange={(e) => setResult(e.target.value as DsaEntry['result'])}>
+            <select className={`mt-1 ${selectField}`} value={result} onChange={(e) => setResult(e.target.value as DsaEntry['result'])}>
               {RESULTS.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </label>

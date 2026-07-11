@@ -32,6 +32,8 @@ const btnGhost =
   'rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60';
 const btnPrimary =
   'rounded-md bg-indigo-500 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60';
+const selectField =
+  'w-full appearance-none rounded-md border border-slate-700 bg-slate-950 py-2 pl-3 pr-9 text-sm text-slate-100 outline-none rw-chevron focus-visible:border-cyan-400 focus-visible:ring-1 focus-visible:ring-cyan-400/50';
 
 export default function Settings({ state, dispatch, apiKeyStore, llmConfigStore }: SettingsProps) {
   const store = useMemo(() => apiKeyStore ?? createApiKeyStore(), [apiKeyStore]);
@@ -113,7 +115,7 @@ export default function Settings({ state, dispatch, apiKeyStore, llmConfigStore 
           Provider
           <select
             id="provider"
-            className={`mt-1 ${field}`}
+            className={`mt-1 ${selectField}`}
             value={config.provider}
             onChange={(e) => selectProvider(e.target.value as LlmProvider)}
           >
@@ -202,7 +204,7 @@ export default function Settings({ state, dispatch, apiKeyStore, llmConfigStore 
           id="company"
           value={state.companyId}
           onChange={(e) => dispatch({ type: 'setCompany', companyId: e.target.value })}
-          className={field}
+          className={selectField}
         >
           {SEED_COMPANIES.map((c) => (
             <option key={c.id} value={c.id}>

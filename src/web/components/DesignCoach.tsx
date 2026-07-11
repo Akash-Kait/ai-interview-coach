@@ -18,8 +18,8 @@ type Mode = 'mlsd' | 'sd';
 type Phase = 'idle' | 'evaluating' | 'done' | 'error';
 const MIN_TRANSCRIPT = 200;
 
-const field =
-  'w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus-visible:border-cyan-400 focus-visible:ring-1 focus-visible:ring-cyan-400/50';
+const selectField =
+  'w-full appearance-none rounded-md border border-slate-700 bg-slate-950 py-2 pl-3 pr-9 text-sm text-slate-100 outline-none rw-chevron focus-visible:border-cyan-400 focus-visible:ring-1 focus-visible:ring-cyan-400/50';
 
 export default function DesignCoach({ state, dispatch, provider, apiKeyStore, llmConfigStore }: Props) {
   const keyStore = useMemo(() => apiKeyStore ?? createApiKeyStore(), [apiKeyStore]);
@@ -94,7 +94,7 @@ export default function DesignCoach({ state, dispatch, provider, apiKeyStore, ll
           <label className="text-sm text-slate-300">
             Mode
             <select
-              className={`mt-1 ${field}`}
+              className={`mt-1 ${selectField}`}
               value={mode}
               onChange={(e) => { setMode(e.target.value as Mode); setProblemId(''); setResult(null); setPhase('idle'); }}
             >
@@ -104,7 +104,7 @@ export default function DesignCoach({ state, dispatch, provider, apiKeyStore, ll
           </label>
           <label className="flex-1 text-sm text-slate-300">
             Problem
-            <select className={`mt-1 ${field}`} value={problem.id} onChange={(e) => setProblemId(e.target.value)}>
+            <select className={`mt-1 ${selectField}`} value={problem.id} onChange={(e) => setProblemId(e.target.value)}>
               {problems.map((p) => (
                 <option key={p.id} value={p.id}>{p.title}</option>
               ))}

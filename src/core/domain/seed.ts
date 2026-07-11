@@ -15,6 +15,28 @@ export const COMPETENCY_LABELS: Record<CompetencyId, string> = Object.fromEntrie
   COMPETENCIES.map((c) => [c.id, c.label]),
 ) as Record<CompetencyId, string>;
 
+/** Canonical DSA pattern list — the single source for the log's Pattern dropdown
+ *  and the "weakest pattern" stat. Order is intentional (NeetCode-style roadmap). */
+export const DSA_PATTERNS: string[] = [
+  'Arrays & Hashing',
+  'Two Pointers',
+  'Sliding Window',
+  'Stack',
+  'Binary Search',
+  'Linked List',
+  'Trees',
+  'Tries',
+  'Heap / Priority Queue',
+  'Backtracking',
+  'Graphs',
+  'Advanced Graphs',
+  '1-D DP',
+  '2-D DP',
+  'Greedy',
+  'Intervals',
+  'Math & Bit Manipulation',
+];
+
 const topic = (competency: CompetencyId, id: string, label: string): Topic => ({
   id, label, competency, best: 0, asked: [],
 });

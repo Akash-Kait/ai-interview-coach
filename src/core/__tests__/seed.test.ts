@@ -5,6 +5,7 @@ import {
   SEED_TOPICS,
   SEED_COMPANIES,
   SEED_DESIGN_PROBLEMS,
+  DSA_PATTERNS,
   DEFAULT_COMPANY_ID,
   DEFAULT_DSA_TARGET,
   createSeedState,
@@ -53,6 +54,30 @@ describe('seed design problems', () => {
       expect(p.prompt.length).toBeGreaterThan(20);
       expect(p.title.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('DSA_PATTERNS', () => {
+  it('is the canonical 17 patterns, in order, starting with Arrays & Hashing', () => {
+    expect(DSA_PATTERNS).toEqual([
+      'Arrays & Hashing',
+      'Two Pointers',
+      'Sliding Window',
+      'Stack',
+      'Binary Search',
+      'Linked List',
+      'Trees',
+      'Tries',
+      'Heap / Priority Queue',
+      'Backtracking',
+      'Graphs',
+      'Advanced Graphs',
+      '1-D DP',
+      '2-D DP',
+      'Greedy',
+      'Intervals',
+      'Math & Bit Manipulation',
+    ]);
   });
 });
 
